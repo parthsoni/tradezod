@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mean
+  creationTimestamp: null
+  labels:
+    io.kompose.service: express
+  name: express
+spec:
+  ports:
+    - name: "3001"
+      port: 3001
+      targetPort: 3001
+  selector:
+    io.kompose.service: express
+status:
+  loadBalancer: {}
