@@ -5,7 +5,6 @@ const environment = require("./config/environment");
 let cors = require("cors");
 let path = require("path");
 let bodyParser = require("body-parser");
-const { expressjwt: expressjwt } = require("express-jwt");
 // Import Mongoose
 let mongoose = require("mongoose");
 
@@ -53,36 +52,6 @@ const allowedExt = [
 let apiRoutes = require("./api-routes");
 // Use Api routes in the App
 app.use("/api", apiRoutes);
-
-// use JWT auth to secure the api, the token can be passed in the authorization header or querystring
-app.use(
-  expressjwt({
-    secret: environment.secret,
-    algorithms: ["HS256"],
-    getToken: function (req) {
-      if (
-        req.headers.authorization &&
-        req.headers.authorization.split(" ")[0] === "Bearer"
-      ) {
-        return req.headers.authorization.split(" ")[1];
-      } else if (req.query && req.query.token) {
-        return req.query.token;
-      }
-      return null;
-    }
-  }).unless({
-    path: [
-      "/api/user/authenticate",
-      "/api/users",
-      "/index.html",
-      "/*.js",
-      "/*.css"
-    ]
-  })
-);
-
-
-
 
 
 const HOST = "0.0.0.0";

@@ -4,42 +4,28 @@ let router = require("express").Router();
 // Set default API response
 router.get("/", function(req, res) {
   res.json({
-    status: "API Its Working",
-    message: "Welcome"
+    status: "Tradezod Suplier",
+    message: "Welcome to Tradezod Suplier"
   });
+
+  
 });
 
-// Import user controller
-var userController = require("./controllers/users.controller");
-// user routes
+// Import suplier controller
+var suplierController = require("./controllers/supliers.controller");
+// suplier routes
 router
-  .route("/users")
-  .get(userController.index)
-  .post(userController.new);
+  .route("/supliers")
+  .get(suplierController.index)
+  .post(suplierController.new);
 router
-  .route("/user/:user_id")
-  .get(userController.view)
-  .patch(userController.update)
-  .put(userController.update)
-  .delete(userController.delete);
-router.route("/user/authenticate").post(userController.authenticate);
-router
-  .route("/user/changepassword/:user_id")
-  .put(userController.changePassword);
+  .route("/suplier/:suplier_id")
+  .get(suplierController.view)
+  .patch(suplierController.update)
+  .put(suplierController.update)
+  .delete(suplierController.delete);
 
-// Import Contact controller
-var contactController = require("./controllers/contact.controller");
-// Contact routes
-router
-  .route("/contacts")
-  .get(contactController.index)
-  .post(contactController.new);
-router
-  .route("/contact/:contact_id")
-  .get(contactController.view)
-  .patch(contactController.update)
-  .put(contactController.update)
-  .delete(contactController.delete);
+
 
 // Export API routes
 module.exports = router;

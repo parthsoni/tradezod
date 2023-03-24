@@ -1,7 +1,7 @@
-// user.model.js
+// suplier.model.js
 var mongoose = require("mongoose");
 // Setup schema
-var userSchema = mongoose.Schema({
+var suplierSchema = mongoose.Schema({
   firstName: {
     type: String,
     required: true
@@ -10,24 +10,19 @@ var userSchema = mongoose.Schema({
     type: String,
     required: true
   },
-  username: {
-    type: String,
-    required: true
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  token: String,
   email: String,
   mobile: String,
+  userId: {
+    type: String,
+    required: true
+  },
   create_date: {
     type: Date,
     default: Date.now
   }
 });
-// Export User model
-var User = (module.exports = mongoose.model("user", userSchema));
+// Export Suplier model
+var Suplier = (module.exports = mongoose.model("suplier", suplierSchema));
 module.exports.get = function (callback, limit) {
-  User.find(callback).limit(limit);
+  Suplier.find(callback).limit(limit);
 };

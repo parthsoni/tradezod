@@ -12,7 +12,8 @@ var userSchema = mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    select:false
   },
   token: String,
   email: {
@@ -33,7 +34,7 @@ var userSchema = mongoose.Schema({
     enum : [ 'ADMIN', 'USER'],
     default: 'USER'
   },
-  create_date: {
+  createDate: {
     type: Date,
     default: Date.now
   },

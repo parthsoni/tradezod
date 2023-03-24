@@ -2,6 +2,25 @@ version: "3.3" # specify docker-compose version
 
 # Define the services/containers to be run
 services:
+  suplier: #name of the second service
+    build: suplier # specify the directory of the Dockerfile
+    container_name: suplier
+    restart: always
+    ports:
+      - "3002:3002" #specify ports forewarding
+      # Below database enviornment variable for api is helpful when you have to use database as managed service
+    environment:
+      - SECRET=Thisismysecret
+      - MONGO_DB_USERNAME=admin-user
+      - MONGO_DB_PASSWORD=admin-password
+      - MONGO_DB_HOST=database
+      - MONGO_DB_PORT=
+      - MONGO_DB_PARAMETERS=?authSource=admin
+      - MONGO_DB_DATABASE=tradezod
+      - EXPRESS_PORT=3002
+    links:
+      - database
+      - user
   user: #name of the second service
     build: user # specify the directory of the Dockerfile
     container_name: user

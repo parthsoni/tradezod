@@ -8,6 +8,8 @@ let bodyParser = require("body-parser");
 const { expressjwt: expressjwt } = require("express-jwt");
 // Import Mongoose
 let mongoose = require("mongoose");
+const { createProxyMiddleware, responseInterceptor, fixRequestBody  } = require('http-proxy-middleware');
+
 
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -76,8 +78,9 @@ app.use(
     }
   }).unless({
     path: [
-      "/api/user/authenticate",
+      "/api/users/authenticate",
       "/api/users",
+      "/api/supliers",
       "/index.html",
       "/*.js",
       "/*.css"
@@ -92,6 +95,18 @@ app.use(function(err, req, res, next) {
   }
 next();
 });
+
+
+// proxy middleware options
+/** @type {import('http-proxy-middleware/dist/types').Options} */
+const options = {
+  target: 'http://suplier:3002', // target host
+  changeOrigin: true, // needed for virtual hosted sites
+  ws: true, // proxy websockets,
+  onProxyReq: fixRequestBody
+  
+};
+app.use('/api/supliers', createProxyMiddleware(options));
 
 
 

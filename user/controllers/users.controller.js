@@ -5,16 +5,18 @@ Otp = require("../models/otp.model");
 const speakeasy = require('speakeasy');
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
+
 // Handle index actions
 
 const environment = require("../config/environment");
-
+const Utility = require("../utility/utility");
+var userFilter = {password:1, mobile:1, email:1, firstName:1, lastName:1, userType:1, roleType:1, token:1, createDate:1}
 exports.index = function (req, res) {
     User.find({}, {
         password: 0
     }, function (err, users) {
         if (err) {
-            res.status(400).json({status: "error", error: "Bad Request."});
+            res.status(200).json({status: "error", error: "Bad Request."});
         }
         res.json({status: "success", message: "Users retrieved successfully", data: users});
     });
@@ -33,12 +35,14 @@ exports.new = function (req, res) {
         password: 0
     }, function (err, users) {
         if (err) {
-            res.status(400).json({status: "error", message: err});
+            res.status(200).json({status: "error", message: err});
         }
         if (users && users.length > 0) {
-            res.status(400).send({
-                status: "error",
-                message: req.body.mobile + " is already taken"
+            res.status(200).send({
+                status: "success",
+                type: "ALREADY_TAKEN",
+                message: req.body.mobile + " is already taken",
+                data: users
             });
         } else {
             var user = new User();
@@ -52,9 +56,11 @@ exports.new = function (req, res) {
             // save the user and check for errors
             user.save(function (err) {
                 if (err) {
-                    res.status(400).json({status: "error", error: err});
+                    res.status(200).json({status: "error", message:err, error: err});
                 }
-                res.json({message: "New user created!", data: user});
+                user=user.toObject();
+                delete user.password
+                res.json({ status: "success", message: "New user created!", data: user});
             });
         }
     });
@@ -65,7 +71,7 @@ exports.view = function (req, res) {
         password: 0
     }, function (err, user) {
         if (err) {
-            res.status(400).json({status: "error", error: err});
+            res.status(200).json({status: "error", error: err});
         }
         res.json({message: "User details loading..", data: user});
     });
@@ -76,7 +82,7 @@ exports.update = function (req, res) {
         new: true
     }, function (err, user) {
         if (err) {
-            res.status(400).json({status: "error", error: err});
+            res.status(200).json({status: "error", error: err});
         }
 
         res.json({message: "User Info updated", data: user});
@@ -88,7 +94,7 @@ exports.delete = function (req, res) {
         _id: req.params.user_id
     }, function (err, user) {
         if (err) {
-            res.status(400).json({status: "error", error: err});
+            res.status(200).json({status: "error", error: err});
         }
         res.json({status: "success", message: "User deleted"});
     });
@@ -96,15 +102,15 @@ exports.delete = function (req, res) {
 
 
 exports.sendOtp = async function (req, res) {
-    response = await  generateOtp(req)
+    response = await generateOtp(req)
     if (response && response.status == "error") {
-        res.status(400).json(response);
+        res.status(200).json(response);
     } else {
         res.status(200).json(response);
     }
 }
 
- async function generateOtp(req) {
+async function generateOtp(req) {
     response = {
         status: "error",
         message: ""
@@ -134,6 +140,9 @@ exports.sendOtp = async function (req, res) {
                 }
             }
         });
+
+        /*** send otp using sms */
+        new Utility().sendSMS(otp.type_value, otp.otp_value)
         response = {
             status: "success",
             message: "OTP sent successfully.",
@@ -146,16 +155,21 @@ exports.sendOtp = async function (req, res) {
 }
 
 async function verifyOtp(type_value, otp_value) {
-  const update = { "status": "INACTIVE" };
-  const otp = await Otp.findOneAndUpdate({"status": "ACTIVE",type_value: type_value,  otp_value: otp_value}, update, {  new: true});
-  return otp
+    const update = {
+        "status": "INACTIVE"
+    };
+    const otp = await Otp.findOneAndUpdate({
+        "status": "ACTIVE",
+        type_value: type_value,
+        otp_value: otp_value
+    }, update, {new: true});
+    console.log(otp)
+    return otp
 }
 
-exports.validateToken = function(req, res) {
-token = req.header.token
-if(token) {
-    
-}
+exports.validateToken = function (req, res) {
+    token = req.header.token
+    if (token) {}
 
 }
 
@@ -167,8 +181,7 @@ exports.authenticate = async function (req, res) {
     if (req.body.mobile) {
         type_value = mobile_no = req.body.mobile
 
-    }
-    if (req.body.email) {
+    } else if (req.body.email) {
         type_value = email_id = req.body.email
     }
 
@@ -182,39 +195,42 @@ exports.authenticate = async function (req, res) {
         ]
     }, async function (err, user) {
         if (err) {
-            res.status(400).json({status: "error", error: err});
+            res.status(200).json({status: "error", error: err});
         }
         password = req.body.password
         if (user) {
-        
-        if (bcrypt.compareSync(password, user.password)) { // authentication successful
-            user.token = jwt.sign({
-                user: user
-            }, environment.secret, {algorithm: "HS256"});
-            user = user.toObject();
-            delete user.password
-            res.json({status: "success", message: "Users logged in successfully", data: user});
-        } else { // authentication failed
-            const update = {"status": "INACTIVE"}
-            user = user.toObject();
-            delete user.password
-            otp = await verifyOtp(type_value, password)
-            if (otp && otp.status == "INACTIVE"){
-                 res.json({status: "success", message: "Users logged in successfully", data: user});
-            }else {
-            res.status(401).send({status: "error", message: "User name or password/otp is invalid."});
+            console.log(user)
+
+            if (bcrypt.compareSync(password, user.password)) { // authentication successful
+                user.token = jwt.sign({
+                    user: user
+                }, environment.secret, {algorithm: "HS256"});
+                user = user.toObject();
+                delete user.password
+                res.json({status: "success", message: "Users logged in successfully", data: user});
+            } else { // authentication failed
+                const update = {
+                    "status": "INACTIVE"
+                }
+                user = user.toObject();
+                delete user.password
+                otp = await verifyOtp(type_value, password)
+                if (otp && otp.status == "INACTIVE") {
+                    res.json({status: "success", message: "Users logged in successfully", data: user});
+                } else {
+                    res.status(200).send({status: "error", message: "User name or password/otp is invalid."});
+                }
             }
+        } else {
+            res.status(200).send({status: "error", message: "User name or password/otp is invalid."});
         }
-    }else {
-        res.status(401).send({status: "error", message: "User name or password/otp is invalid."});
-    }
-    });
+    }).select(userFilter);
 };
 
 exports.changePassword = function (req, res) {
     User.findById(req.params.user_id, function (err, user) {
         if (err) {
-            res.status(400).json({status: "error", error: err});
+            res.status(200).json({status: "error", error: err});
         }
 
         if (user && bcrypt.compareSync(req.body.oldPassword, user.password)) { // authentication successful
@@ -226,7 +242,6 @@ exports.changePassword = function (req, res) {
                     res.json(err);
                 
 
-
                 res.status(202).send({status: "success", message: "Password Updated successfully"});
             });
         } else { // authentication failed
@@ -234,4 +249,3 @@ exports.changePassword = function (req, res) {
         }
     });
 };
-

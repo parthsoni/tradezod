@@ -20,7 +20,9 @@
     "q": "^1.4.1",
     "request": "^2.88.2",
     "rootpath": "^0.1.2",
-    "speakeasy": "2.0.0"
+    "speakeasy": "2.0.0",
+    "express-http-proxy":"1.6.3",
+    "http-proxy-middleware":"2.0.6"
   },
   "license": "MIT",
   "devDependencies": {
