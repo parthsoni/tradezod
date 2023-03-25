@@ -51,6 +51,7 @@ const allowedExt = [
   ".txt"
 ];
 
+
 // Import routes
 let apiRoutes = require("./api-routes");
 // Use Api routes in the App
@@ -95,6 +96,8 @@ app.use(function(err, req, res, next) {
   }
 next();
 });
+
+
 
 
 // proxy middleware options

@@ -5,12 +5,11 @@ Otp = require("../models/otp.model");
 const speakeasy = require('speakeasy');
 var jwt = require("jsonwebtoken");
 var bcrypt = require("bcryptjs");
-
 // Handle index actions
-
 const environment = require("../config/environment");
 const Utility = require("../utility/utility");
 var userFilter = {password:1, mobile:1, email:1, firstName:1, lastName:1, userType:1, roleType:1, token:1, createDate:1}
+
 exports.index = function (req, res) {
     User.find({}, {
         password: 0
